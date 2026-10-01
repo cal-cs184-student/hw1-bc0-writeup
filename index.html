@@ -49,14 +49,26 @@
 
 		<h2>Overview</h2>
 		Give a high-level overview of what you implemented in this homework. Think about what you've built as a whole. 
-		
-		Share your thoughts on what interesting things you've learned from completing the homework.
+
+		The high level overview is I built that part of a video game's graphics options menu that allows me to "improve" the graphical rendering. 
+
+		What was interesting was getting into the low level code details and math of how these graphics modification options in those video game menus, work. 
+		Though I have had a general idea of how it works having done game dev, particularly VR work in Unity, I have never really had to implement them til now.
+		It reminds me of when I had to write out how a linked list works in c++ by hand (like paper to pencil), including the memory management. 
+		It is also always fun to see the application of different algorithims for new specific different types of problems (so in this case, for graphics rendering). 
 
 		<h2>Task 1: Drawing Single-Color Triangles</h2>
 		
 		I get 3 vertices of a triangle.
 
 		I take the minimum and maximum of the x coordinates and y coodinates to get the horizontal and vertical extents, respectively.
+		I floor the minimums and ceiling the maximums so that the box is expressed as an integer pixel coordinate. 
+		I then clamp this to the framebuffer's dimensions, as to prevent any writing outside of the constraints. 
+		Within every pixel in this bounding box, I take a sample point at the center of the pixel, and run a point in triangle test using the edge functions.
+		For each of the triangle's edges, the edge functions tells me what side of the line the sample point falls on. 
+		One side is positive, the other is negative and zero if it is directly on the line. A point is inside a trinagle then when it is on the same side of all three of the edges,
+		as in all not negative or all not positive. We use the equals or for evaluation so that if a sample sits on an edge, it will still count as inside. 
+		This means edges are filled rather than unfilled just in case. Any sample that successfully passes this test gets colored in by the fill_pixel algorithm. 
 
 		
 		<h2>Task 2: Antialiasing by Supersampling</h2>
@@ -70,18 +82,54 @@
 		It behaves as a temporary frame buffer. Each pixel, a (x,y) coordinate, has a block of sample_rateColor entries, beginning at (width * y + x) * sample_rate. 
 		Every subsample of that pixel (s) is at base + s. Having each pixel's sample adjacent in memory optimizes the downsampling at the end to be very quick.
 
+		Modifications to rasterization pipeline:
+
+		In rasterize_triangle, i check the triangle's bounding box, and loop over the pixels in it. 
+		Within each pixel i do a square root of the sample rate times itself, creating a grid of sample points. 
+		Each higher sampling rate increases the number of sub cells. Each sample point within is tested independently against the three edge functions (both orders forward and backwards depending on which starting vertex)
+		If a sample is inside the range, the triangle's color is written into the sample slot. If it is not, the sample is left alone so if qualified to be filled in by an earlier call, it retains the color that was placed in it then. 
+		Then the resolve_to_framebuffer takes an average of each pixel's sample_rate samples and then converts to a float which goes into rgb_framebuffer_target (8 bit description of a color).
+
 		Supersampling Usefulness:
 
-		Supersampling essentially increases the "resolution" of the image, and then downsamples it to the original resolution. This allows for more accurate color representation, especially at edges, reducing aliasing artifacts.
-
-		Modifications to rasterization pipeline:
+		Rendeirng an image is an attempt to decieve us into thinking than image is a whole, when in fact it is made up of many discrete pixels. The more pixels we have, the more accurately we can represent the image. However, there are limits to how many pixels we can have, and so we must make do with a limited number of pixels. 
+		When we have a limited number of pixels, we can use supersampling to increase the "effective number of pixels". Supersampling works by rendering the image at a higher resolution than the final output resolution, and then downsampling the image to the final output resolution. This allows us to capture more detail in the image, and reduces aliasing artifacts.
 
 		Supersampling anti aliases my triangles by:
 
-		At the edge of a triangle, a pixel is only partially covered by the triangle. 
+		At the edge of a rendered triangle, a pixel is only partially covered by the vertices that describe the triangles that make up the triangle image. 
+		If we decide to only show a pixel or not, as there are less pixels describing a part of the triangle (so particularly at the edges), the more aliased it will be. 
+		When we super sample, we are effectively increasing the number of pixels that describe the triangle, and so we can more accurately determine how much of a pixel is covered by the triangle.
+		Then pixels around the originally color sampled pixels can be color adjusted to various degrees of that triangle's color and white. When zoomed out, this makes the triangle edges seem smother. 
+
+		<figure>
+			<img src="assets/samplerate1.png" alt="rate1" style="width:75%" />
+			<figcaption>super sample rate 1</figcaption>
+		</figure>
+
+		<figure>
+			<img src="assets/samplerate4.png" alt="rate4" style="width:75%" />
+			<figcaption>super sample rate 4</figcaption>
+		</figure>
+
+		<figure>
+			<img src="assets/samplerate16.png" alt="rate16" style="width:75%" />
+			<figcaption>super sample rate 16</figcaption>
+		</figure>
+
+		You can see here that with higher super sampling, the edges of the pink purple triangle become smoother and less jagged.
+		Without super sampling, each pixel is either on or off, and in cases like the tip of this triangle where there are fewer colored pixels 
+		together, compared to the white area around it, the triangle will look jagged. This is aliasing. As the super sampling goes higher,
+		the edges of the triangle become smoother and less jagged, as the color of the triangle is more accurately represented (by each pixel being sampled at first 4 times, and then 16 times) in the final downsampled image.
 
 		<h2>Task 3: Transforms</h2>
 
+		My cubeman is doing a dance known as the "stanky leg" where one whole leg is rotating into a circular motion while the other is bent slightly in order to support this. 
+
+		<figure>
+			<img src="assets/stankylegman.png" alt="dancing cubeman" style="width:75%" />
+			<figcaption>He doing the stanky leg dance</figcaption>
+		</figure>
 
 		<h2>Task 4: Barycentric coordinates</h2>
 
