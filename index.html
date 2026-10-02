@@ -38,29 +38,28 @@
 
 		Link to GitHub repository: (TODO) <a href="https://cs184.eecs.berkeley.edu/fa26">cs184.eecs.berkeley.edu/fa26</a>
 
-		<figure>
-			<img src="assets/lion.jpg" alt="Lion" style="width:50%"/>
-			<figcaption>This is my test lion code</figcaption>
-		</figure>
-
 		<!--
 		We've already added one heading per task, to make your write-up as navigable when grading. Please fit your write-up within these sections!
 		-->
 
 		<h2>Overview</h2>
-		Give a high-level overview of what you implemented in this homework. Think about what you've built as a whole. 
-
+		
+		<p>
 		The high level overview is I built that part of a video game's graphics options menu that allows me to "improve" the graphical rendering. 
+	    </p>
 
-		What was interesting was getting into the low level code details and math of how these graphics modification options in those video game menus, work. 
+		<p>
+			What was interesting was getting into the low level code details and math of how these graphics modification options in those video game menus, work. 
 		Though I have had a general idea of how it works having done game dev, particularly VR work in Unity, I have never really had to implement them til now.
 		It reminds me of when I had to write out how a linked list works in c++ by hand (like paper to pencil), including the memory management. 
 		It is also always fun to see the application of different algorithims for new specific different types of problems (so in this case, for graphics rendering). 
+			</p>
 
 		<h2>Task 1: Drawing Single-Color Triangles</h2>
 		
+		<p>
 		I get 3 vertices of a triangle.
-
+		
 		I take the minimum and maximum of the x coordinates and y coodinates to get the horizontal and vertical extents, respectively.
 		I floor the minimums and ceiling the maximums so that the box is expressed as an integer pixel coordinate. 
 		I then clamp this to the framebuffer's dimensions, as to prevent any writing outside of the constraints. 
@@ -69,8 +68,17 @@
 		One side is positive, the other is negative and zero if it is directly on the line. A point is inside a trinagle then when it is on the same side of all three of the edges,
 		as in all not negative or all not positive. We use the equals or for evaluation so that if a sample sits on an edge, it will still count as inside. 
 		This means edges are filled rather than unfilled just in case. Any sample that successfully passes this test gets colored in by the fill_pixel algorithm. 
+			</p>
 
-		
+		Why it is no worse than checking every sample in the bounding box:
+
+		<p>
+		What we are comparing against is to "iterate overy every pixel in the bounding box and to do a constant runtime check on whether it is inside or outside"
+
+		This algorithm does essentially the same. The two outer loops go over (x_min, x_max) * (y_min, y_max) which is the bounding box. The inner loop goes over the sample rate, which is linear.
+		Then the edge function checks are O(1). This gives us n * O(1) = O(n). So this algorithm is O(n) where n is the number of pixels in the bounding box, which is no worse than checking every sample in the bounding box.
+		</p>
+
 		<h2>Task 2: Antialiasing by Supersampling</h2>
 
 		Super sampling algorithm.
@@ -132,7 +140,29 @@
 		</figure>
 
 		<h2>Task 4: Barycentric coordinates</h2>
+		<img src="assets/barytriangleblend.png" alt="barytriangle" style="width:75%" />
+			<figcaption>Barycentric triangle</figcaption>
 
+		It follows the assignment suggestion to create a triangle, with one vertex red, one vertex green, and one vertex blue. The colors are blended together in the interior of the triangle using barycentric coordinates.
+
+		<p>
+		Barycentric coordinates are a way of describing any point relative to a triangle as a weighted mix of its three vertices, instead of a 2 coordinate x,y  position. A triangle with 3 vertices, A, B, and C, can have a point P in relation to it.
+		For a triangle with vertices A, B, and C, any point P in the plane can be written as:
+		</p>
+		<li><code>P = α·A + β·B + γ·C </code> </li>
+
+		<p>
+		where α, β, γ are the barycentric coordinates. The value of these coordinates always add up to 1. Each weight tells you how much influence that vertex has on the point. The closer it is to 1, the closer it is to that vertex point. At the center of an equilateral triangle, each barycentric coordinate would be 1/3 , as they would all have equal pull. If a coordinate is in the negative, that means it is outside the triangle, on the opposite side of that particular vertex. 
+		</p>>
+
+		<p>
+			In the rasterizer, I use barycentric coordinates two ways. 
+		The first, is an inside/outside the triangle test: a sample point is inside the triangle exactly when all three weights are non-negative or all non-positive, depending on the winding order. Basically an edge function sign test. 
+		Secondly if I can confirm a point is inside i then use the weights to interpolate per vertex data smoothly and consistently through the triangle, blending the vertex colors. 
+		</p>
+
+		<img src="assets/test7.png" alt="test7" style="width:75%" />
+			<figcaption>Barycentric blended circle</figcaption>
 
 		<h2>Task 5: "Pixel sampling" for texture mapping</h2>
 
