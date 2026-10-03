@@ -231,6 +231,54 @@ Super sampling solves geometric and screen space aliasing where as bilinear work
 		Mipmaps then are a precomuted pyramid of progressively lower resolution, pre blurred versions of a texture. (For instance mipmap[0] is full resolution, and each level down is half the width and height of the previous). We estimate how much texture area a given screen pixel covers, and then sample from the mip level that is equivalent to about one texel per pixel at that point. Courses depth mips already have details removed so by reading it, we won’t get any aliasing problems. 
 		</p>
 
+		<img src="assets/lzeropnearest.png" alt="l0pn" style="width:90%" />
+<figcaption>l_zero and p nearest </figcaption>
+
+<p>Worst overall, both the near squares and farther ones are very blocky and noisy. </p>
+
+		<img src="assets/lzeroplinear.png" alt="l0pl" style="width:90%" />
+<figcaption>l_zero and p linear </figcaption>
+
+<p>The linear effect makes squares closer to the front smoother since it is "magnified" relatively to the rear which is still noisy and aliased. 
+	This is because when a pixel covers a lot of texels (far away) it still looks bad since we are not adjusting for minifcation </p>
+
+		<img src="assets/lnearestpnearest.png" alt="lnpn" style="width:90%" />
+<figcaption>l_nearest and p nearest </figcaption>
+
+<p>In this case the front closer squares are still blocky since we are back to p nearest. The rear squares however are smoother and more blurred together
+	since we are now using coarses mip levels to make up for minifcation </p>
+
+		<img src="assets/lnearestplinear.png" alt="lnpl" style="width:90%" />
+<figcaption>l_nearest and p linear </figcaption>
+
+<p>Best overall with both effects working. However, it is technically the most expensive. </p>
+
+<p>Implementation</p>
+
+<p> Choosing the level (Texture::get_level): for a given screen point, I estimate how fast (u, v) changes as the point moves one pixel to the right (dp_dx_uv) and one pixel down (dp_dy_uv). These come from sp.p_dx_uv - sp.p_uv and sp.p_dy_uv - sp.p_uv, computed in rasterize_textured_triangle by barycentrically interpolating (u,v) at (x,y), (x+1,y), and (x,y+1). I scale both difference vectors by the full-resolution texture's width/height to convert them from normalized uv units into texel units, then take the larger of the two vectors' magnitudes as L, the number of texels a one-pixel step covers. The mip level is log2(L): if a pixel covers 2^k texels, level k is the resolution where that pixel covers roughly one texel.
+</p>
+
+<p>How each of the LevelSampleMethodlsm works</p>
+
+<p>L_ZERO ignores the computed level entirely and always samples level 0 (the Task 5 behavior).</p>
+
+<p>L_NEAREST rounds the continuous level to the nearest integer mip level (clamped to the valid range) and samples that level once, via sample_nearest or sample_bilinear depending on psm. </p>
+
+<p>L_LINEAR takes the floor and ceiling of the continuous level as two adjacent integer levels, samples both independently, and linearly blends them by the fractional part of the level. Combined with psm == P_LINEAR, this is trilinear filtering: bilinear within each level, linear across levels.</p>
+
+<p>TRADEOFFS!</p>
+
+<p> For pixel sampling, if we use "nearest" we trade speed (one texel lookup, vs 4 + 3 lerps) for a smoother final image under magnification. Same memory cost since we just read from the same single level texture image. Doesn't help with aliasing or minification. </p>
+
+<p> For level sampling, we trade memory and some speed for anti aliasing when there is minification. Mipmaps cost about 1/3 extra memory (the convergence of the geometric series that applies to it). 
+	L_Zero costs one sample call, L_Nearest costs one extra texture leve lookup in addition to that. L_Linear doubles the lookup cost (which can be affected by what pixel sampling method is used).
+	This helps for smoother transitions between mip levels are the camera moves. </p>
+
+<p> Sampling rate is the most costly of the three. It is a brute force anti aliasing by evaluation of the whole render pipeline. It does an inside / outside test 
+	at the subpixel locations, and then averages results. This helps with pointy edges and other things related to geometric coverage. 
+	The cost is a multiplicative and scales with the sample rate. If you double the samples per pixel then you double the memory use and computation costs, since every triangle test and texture read happens multiplicatively for each pixel instead of one.
+</p>
+
 		</div>
 	</body>
 </html>
