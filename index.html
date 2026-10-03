@@ -36,7 +36,7 @@
 		
 		<br>
 
-		Link to GitHub repository: (TODO) <a href="https://cs184.eecs.berkeley.edu/fa26">cs184.eecs.berkeley.edu/fa26</a>
+		Link to GitHub repository: (TODO) <a href="https://github.com/cal-cs184-student/hw1-bc0">cs184.eecs.berkeley.edu/fa26</a>
 
 		<!--
 		We've already added one heading per task, to make your write-up as navigable when grading. Please fit your write-up within these sections!
@@ -199,7 +199,27 @@ Nearest-neighbor sampling picks the single closest textured pixel and uses its c
 Bilinear sampling blends the four nearest textured pixels based on the sample point's position between them. This is computationally more expensive (four lookups and three lerps aka linear interpolations, instead of one lookup compared to nearest neighbor sampling). Its advantage is that it smooths out the transition between texels, so magnified textures look soft and continuous rather than blocky. 
 </p>
 
+<img src="assets/world1.png" alt="world1" style="width:90%" />
+<figcaption>For the world 1 picture which is nearest sampling at 1 rate, it is the blockiest. It has “hard” texel edges and jagged triangle edges. </figcaption>
 
+<img src="assets/world2.png" alt="world2" style="width:90%" />
+<figcaption>World 2 picture is nearest sampling at 16. The text blocks themselves are still hard, but the pointy triangle type areas that makeup the small islands and parts of the red line are a little less “rough” and discrete looking when zoomed out because super sampling does help with this.</figcaption>
+
+<img src="assets/world3.png" alt="world3" style="width:90%" />
+<figcaption>World 3 picture is bilinear sampling level 1. The transition between texels are smooth but the edges of the triangular parts of the islands are still rough and jaggedy.</figcaption>
+
+<img src="assets/world4.png" alt="world4" style="width:90%" />
+<figcaption>World 4 is bilinear sampling level 16. It is the smoothest overall with both texture blockiness and jagged edges reduced. This is the combination of the 2 techniques at their best. </figcaption>
+
+<p>
+
+Raising the sample rate does not make the nearest neighbor algorithm start interpolating between the texels. You are just taking more nearest neighbor samples at different sub pixel positions and averaging the discrete results. 
+If enough of a pixel’s subsample points all land in the same texel which can happen when a texture is magnified, you still get a flat and blocky image. All the subsamples “agree” basically. 
+Blockiness begins to soften when pixels are at a texel boundary, because some subsamples will land in one texel and some in the adjacent different ones. The average produces a gradient but does not “smooth” things out like bilinear sampling does. 
+Super sampling solves geometric and screen space aliasing where as bilinear works through texture reading and barycentric weighting. A high super sample rate can sort of approximate what bilinear filtering is doing at the edges of images but it is not blending them like bilinear sampling is. 
+
+
+</p>
 
 		<h2>Task 6: "Level Sampling" with mipmaps for texture mapping</h2>
 
