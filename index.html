@@ -32,11 +32,11 @@
 
 		<br>
 
-		Link to webpage: (TODO) <a href="https://cs184.eecs.berkeley.edu/fa26">cs184.eecs.berkeley.edu/fa26</a>
+		Link to webpage: <a href="https://cal-cs184-student.github.io/hw1-bc0-writeup/">https://cal-cs184-student.github.io/hw1-bc0-writeup/</a>
 		
 		<br>
 
-		Link to GitHub repository: (TODO) <a href="https://github.com/cal-cs184-student/hw1-bc0">cs184.eecs.berkeley.edu/fa26</a>
+		Link to GitHub repository: <a href="https://github.com/cal-cs184-student/hw1-bc0">github_repo</a>
 
 		<!--
 		We've already added one heading per task, to make your write-up as navigable when grading. Please fit your write-up within these sections!
@@ -222,6 +222,14 @@ Super sampling solves geometric and screen space aliasing where as bilinear work
 </p>
 
 		<h2>Task 6: "Level Sampling" with mipmaps for texture mapping</h2>
+
+		<p>
+		Level sampling uses mipmaps to deal with minification, which is the opposite of the magnification problem in Task 5. In minifcation the problem is that one screen pixel overlaps too many texels, so reading closeby texels (nearest sampling) or blending (bilinear sampling) means most of the texture detail in that area is loss. As the image or camera moves, the inconsistency of which texel gets sampled distorts the image and creates high frequency noise. 
+		</p>
+
+		<p>
+		Mipmaps then are a precomuted pyramid of progressively lower resolution, pre blurred versions of a texture. (For instance mipmap[0] is full resolution, and each level down is half the width and height of the previous). We estimate how much texture area a given screen pixel covers, and then sample from the mip level that is equivalent to about one texel per pixel at that point. Courses depth mips already have details removed so by reading it, we won’t get any aliasing problems. 
+		</p>
 
 		</div>
 	</body>
